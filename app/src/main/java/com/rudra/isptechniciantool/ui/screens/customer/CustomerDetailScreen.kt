@@ -3,43 +3,20 @@ package com.rudra.isptechniciantool.ui.screens.customer
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -47,7 +24,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rudra.isptechniciantool.domain.model.Customer
 import com.rudra.isptechniciantool.domain.model.SyncStatus
-import com.rudra.isptechniciantool.util.PermissionUtils
+import com.rudra.isptechniciantool.ui.components.*
+import com.rudra.isptechniciantool.ui.theme.*
 
 /**
  * Customer detail screen showing all customer information.
@@ -57,6 +35,7 @@ import com.rudra.isptechniciantool.util.PermissionUtils
 fun CustomerDetailScreen(
     customerId: Long,
     onNavigateBack: () -> Unit,
+    onNavigateToEdit: (Long) -> Unit,
     viewModel: CustomerDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -78,25 +57,18 @@ fun CustomerDetailScreen(
     }
     
     if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Customer") },
-            text = { Text("Are you sure you want to delete this customer? This action cannot be undone.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.deleteCustomer()
-                        showDeleteDialog = false
-                    }
-                ) {
-                    Text("Delete", color = MaterialTheme.colorScheme.error)
-                }
+        ISPDialog(
+            title = "Delete Customer",
+            message = "Are you sure you want to delete ${uiState.customer?.name}? This action cannot be undone.",
+            onConfirm = {
+                viewModel.deleteCustomer()
+                showDeleteDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            }
+            onDismiss = { showDeleteDialog = false },
+            confirmText = "Delete",
+            dismissText = "Cancel",
+            isDestructive = true,
+            icon = Icons.Default.Delete
         )
     }
     
@@ -119,49 +91,49 @@ fun CustomerDetailScreen(
                         }) {
                             Icon(Icons.Default.Phone, contentDescription = "Call")
                         }
-                    }
-                    IconButton(onClick = { /* Navigate to edit */ }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit")
-                    }
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                        IconButton(onClick = { onNavigateToEdit(customerId) }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                        }
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(Icons.Default.Delete, contentDescription = "Delete")
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = TechBlue,
+                    titleContentColor = NeutralWhite,
+                    navigationIconContentColor = NeutralWhite,
+                    actionIconContentColor = NeutralWhite
                 )
             )
         }
     ) { paddingValues ->
-        if (uiState.isLoading) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (uiState.error != null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = uiState.error ?: "Unknown error",
-                    color = MaterialTheme.colorScheme.error
+        when {
+            uiState.isLoading -> {
+                LoadingIndicator(
+                    modifier = Modifier.padding(paddingValues),
+                    message = "Loading customer..."
                 )
             }
-        } else {
-            uiState.customer?.let { customer ->
+            uiState.error != null -> {
+                EmptyState(
+                    icon = Icons.Default.Error,
+                    title = "Error",
+                    message = uiState.error ?: "Unknown error occurred",
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            uiState.customer != null -> {
                 CustomerDetailContent(
-                    customer = customer,
+                    customer = uiState.customer!!,
                     modifier = Modifier.padding(paddingValues),
-                    onRetrySync = { viewModel.retrySync() }
+                    onRetrySync = { viewModel.retrySync() },
+                    onCallCustomer = { phone ->
+                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                            data = Uri.parse("tel:$phone")
+                        }
+                        context.startActivity(intent)
+                    }
                 )
             }
         }
@@ -172,7 +144,8 @@ fun CustomerDetailScreen(
 private fun CustomerDetailContent(
     customer: Customer,
     modifier: Modifier = Modifier,
-    onRetrySync: () -> Unit
+    onRetrySync: () -> Unit,
+    onCallCustomer: (String) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -181,107 +154,245 @@ private fun CustomerDetailContent(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Header Card with Sync Status
-        Card(
+        // Header Card with Customer Info
+        ISPCard(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            cardType = CardType.ELEVATED
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = customer.name,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Customer Avatar
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(TechBlue),
+                    contentAlignment = Alignment.Center
                 ) {
-                    SyncStatusBadge(syncStatus = customer.syncStatus, showDetails = true)
-                    if (customer.syncStatus == SyncStatus.FAILED) {
-                        OutlinedButton(onClick = onRetrySync) {
-                            Text("Retry Sync")
+                    Text(
+                        text = customer.name.take(2).uppercase(),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = NeutralWhite
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = customer.name,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        SyncStatusBadge(syncStatus = customer.syncStatus)
+                        if (customer.syncStatus == SyncStatus.FAILED) {
+                            ISPButton(
+                                text = "Retry",
+                                onClick = onRetrySync,
+                                buttonType = ButtonType.OUTLINE,
+                                height = 28.dp
+                            )
                         }
                     }
                 }
             }
         }
         
+        // Quick Actions
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            ActionButton(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Phone,
+                text = "Call",
+                onClick = { onCallCustomer(customer.phone) }
+            )
+            ActionButton(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Message,
+                text = "SMS",
+                onClick = { /* TODO: Open SMS */ }
+            )
+            ActionButton(
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Wifi,
+                text = "Test IP",
+                enabled = customer.ipAddress != null,
+                onClick = { /* TODO: Test IP */ }
+            )
+        }
+        
         // Contact Information
-        DetailSection(title = "Contact Information") {
-            DetailRow(label = "Phone", value = customer.phone)
+        SectionHeader(title = "Contact Information")
+        
+        ISPCard(
+            modifier = Modifier.fillMaxWidth(),
+            cardType = CardType.DEFAULT
+        ) {
+            InfoRow(
+                label = "Phone",
+                value = customer.phone,
+                icon = Icons.Default.Phone,
+                badge = true,
+                badgeColor = SuccessGreen,
+                onClick = { onCallCustomer(customer.phone) }
+            )
+            Spacer(modifier = Modifier.height(12.dp))
             if (customer.phoneSecondary != null) {
-                DetailRow(label = "Alt Phone", value = customer.phoneSecondary)
+                InfoRow(
+                    label = "Alt Phone",
+                    value = customer.phoneSecondary,
+                    icon = Icons.Default.Phone
+                )
+                Spacer(modifier = Modifier.height(12.dp))
             }
             if (customer.email != null) {
-                DetailRow(label = "Email", value = customer.email)
+                InfoRow(
+                    label = "Email",
+                    value = customer.email,
+                    icon = Icons.Default.Email
+                )
             }
         }
         
         // Address Information
-        DetailSection(title = "Service Address") {
-            DetailRow(label = "Address", value = customer.address)
+        SectionHeader(title = "Service Address")
+        
+        ISPCard(
+            modifier = Modifier.fillMaxWidth(),
+            cardType = CardType.DEFAULT
+        ) {
+            InfoRow(
+                label = "Address",
+                value = customer.address,
+                icon = Icons.Default.LocationOn
+            )
             if (customer.addressNotes != null && customer.addressNotes.isNotEmpty()) {
-                DetailRow(label = "Notes", value = customer.addressNotes)
+                Spacer(modifier = Modifier.height(12.dp))
+                InfoRow(
+                    label = "Notes",
+                    value = customer.addressNotes,
+                    icon = Icons.Default.Notes
+                )
             }
         }
         
         // PPP Credentials
-        DetailSection(title = "PPP Credentials") {
-            DetailRow(label = "Username", value = customer.username)
-            DetailRow(label = "Password", value = customer.password)
+        SectionHeader(title = "PPP Credentials")
+        
+        ISPCard(
+            modifier = Modifier.fillMaxWidth(),
+            cardType = CardType.OUTLINED
+        ) {
+            InfoRow(
+                label = "Username",
+                value = customer.username,
+                icon = Icons.Default.AccountCircle
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            InfoRow(
+                label = "Password",
+                value = customer.password,
+                icon = Icons.Default.Lock
+            )
         }
         
         // Network Settings
-        DetailSection(title = "Network Settings") {
-            DetailRow(label = "IP Address", value = customer.ipAddress ?: "Dynamic")
-            DetailRow(label = "Package", value = customer.packageName ?: "Not assigned")
+        SectionHeader(title = "Network Settings")
+        
+        ISPCard(
+            modifier = Modifier.fillMaxWidth(),
+            cardType = CardType.DEFAULT
+        ) {
+            InfoRow(
+                label = "IP Address",
+                value = customer.ipAddress ?: "Dynamic",
+                icon = Icons.Default.SettingsEthernet
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            InfoRow(
+                label = "Package",
+                value = customer.packageName ?: "Not assigned",
+                icon = Icons.Default.Speed
+            )
         }
         
-        // Status & Notes
-        DetailSection(title = "Additional Information") {
-            DetailRow(label = "Status", value = customer.customerStatus.name)
-            if (customer.notes != null && customer.notes.isNotEmpty()) {
-                DetailRow(label = "Notes", value = customer.notes)
-            }
-            DetailRow(
+        // Additional Information
+        SectionHeader(title = "Additional Information")
+        
+        ISPCard(
+            modifier = Modifier.fillMaxWidth(),
+            cardType = CardType.DEFAULT
+        ) {
+            InfoRow(
+                label = "Status",
+                value = customer.customerStatus.name,
+                icon = Icons.Default.Info
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            InfoRow(
                 label = "Last Modified",
-                value = customer.modifiedAt.toString()
+                value = customer.modifiedAt.toString(),
+                icon = Icons.Default.EditCalendar
             )
             if (customer.syncedAt != null) {
-                DetailRow(
+                Spacer(modifier = Modifier.height(12.dp))
+                InfoRow(
                     label = "Last Synced",
-                    value = customer.syncedAt.toString()
+                    value = customer.syncedAt.toString(),
+                    icon = Icons.Default.Sync
+                )
+            }
+            if (customer.notes != null && customer.notes.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                InfoRow(
+                    label = "Notes",
+                    value = customer.notes,
+                    icon = Icons.Default.Notes
                 )
             }
         }
         
+        // Sync Error Display
         if (customer.syncStatus == SyncStatus.FAILED && customer.syncError != null) {
-            Card(
+            ISPCard(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.errorContainer
-                )
+                cardType = CardType.DEFAULT
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Sync Error",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.error
+                    Icon(
+                        imageVector = Icons.Default.Error,
+                        contentDescription = null,
+                        tint = ErrorRed,
+                        modifier = Modifier.size(24.dp)
                     )
-                    Text(
-                        text = customer.syncError,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = "Sync Error",
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = ErrorRed
+                        )
+                        Text(
+                            text = customer.syncError,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -291,79 +402,54 @@ private fun CustomerDetailContent(
 }
 
 @Composable
-private fun DetailSection(
-    title: String,
-    content: @Composable () -> Unit
+private fun ActionButton(
+    modifier: Modifier = Modifier,
+    icon: ImageVector,
+    text: String,
+    onClick: () -> Unit,
+    enabled: Boolean = true
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.clickable(enabled = enabled, onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            containerColor = if (enabled) MaterialTheme.colorScheme.primaryContainer 
+                             else MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+            Icon(
+                imageVector = icon,
+                contentDescription = text,
+                tint = if (enabled) TechBlue else NeutralGray,
+                modifier = Modifier.size(24.dp)
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            content()
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (enabled) MaterialTheme.colorScheme.onPrimaryContainer 
+                       else NeutralGray
+            )
         }
     }
 }
 
 @Composable
-private fun DetailRow(
-    label: String,
-    value: String
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value.ifEmpty { "-" },
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-@Composable
-private fun SyncStatusBadge(
-    syncStatus: SyncStatus,
-    showDetails: Boolean = false
-) {
+private fun SyncStatusBadge(syncStatus: SyncStatus) {
     val (text, color) = when (syncStatus) {
-        SyncStatus.SYNCED -> "Synced" to MaterialTheme.colorScheme.primary
-        SyncStatus.PENDING -> "Pending" to MaterialTheme.colorScheme.tertiary
-        SyncStatus.FAILED -> "Failed" to MaterialTheme.colorScheme.error
-        SyncStatus.SYNCING -> "Syncing..." to MaterialTheme.colorScheme.secondary
-        SyncStatus.CONFLICT -> "Conflict" to MaterialTheme.colorScheme.error
-        SyncStatus.DELETING -> "Deleting" to MaterialTheme.colorScheme.outline
+        SyncStatus.SYNCED -> "Synced" to SuccessGreen
+        SyncStatus.PENDING -> "Pending" to WarningOrange
+        SyncStatus.FAILED -> "Failed" to ErrorRed
+        SyncStatus.SYNCING -> "Syncing..." to TechBlue
+        SyncStatus.CONFLICT -> "Conflict" to ErrorRed
+        SyncStatus.DELETING -> "Deleting" to NeutralGray
     }
     
-    Card(
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = color
-        )
-    }
+    StatusBadge(text = text, color = color)
 }

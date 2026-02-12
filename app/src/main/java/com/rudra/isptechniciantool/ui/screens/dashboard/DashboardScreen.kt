@@ -1,54 +1,16 @@
 package com.rudra.isptechniciantool.ui.screens.dashboard
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Groups
-import androidx.compose.material.icons.filled.NetworkCheck
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Pending
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.filled.Task
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -56,8 +18,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rudra.isptechniciantool.domain.model.Customer
 import com.rudra.isptechniciantool.domain.model.SyncStatus
 import com.rudra.isptechniciantool.domain.model.Task
-import com.rudra.isptechniciantool.domain.model.TaskStatus
-import java.time.format.DateTimeFormatter
+import com.rudra.isptechniciantool.domain.model.TaskPriority
+import com.rudra.isptechniciantool.ui.components.*
+import com.rudra.isptechniciantool.ui.screens.dashboard.TaskPriorityBadge
+import com.rudra.isptechniciantool.ui.theme.*
 
 /**
  * Dashboard screen displaying key metrics and quick actions.
@@ -71,6 +35,7 @@ fun DashboardScreen(
     onNavigateToNetworkTools: () -> Unit,
     onNavigateToTaskList: () -> Unit,
     onNavigateToBackup: () -> Unit,
+    onNavigateToSecrets: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -86,13 +51,23 @@ fun DashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("ISP Technician Tool") },
+                title = { 
+                    Text(
+                        "ISP Technician Tool",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = TechBlue,
+                    titleContentColor = NeutralWhite,
+                    actionIconContentColor = NeutralWhite
                 ),
                 actions = {
                     IconButton(onClick = onNavigateToRouterSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "Router Settings")
+                    }
+                    IconButton(onClick = onNavigateToSecrets) {
+                        Icon(Icons.Default.Key, contentDescription = "Secrets")
                     }
                 }
             )
@@ -101,7 +76,7 @@ fun DashboardScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNavigateToAddCustomer,
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = TechBlue
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Customer")
             }
@@ -120,13 +95,9 @@ fun DashboardScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Summary Cards Section
+                // Summary Stats Section
                 item {
-                    Text(
-                        text = "Overview",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
+                    SectionHeader(title = "Overview")
                 }
                 
                 item {
@@ -134,19 +105,21 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        SummaryCard(
+                        StatCard(
                             modifier = Modifier.weight(1f),
                             title = "Total Customers",
                             value = uiState.totalCustomers.toString(),
                             icon = Icons.Default.Groups,
-                            onClick = onNavigateToCustomerList
+                            iconTint = TechBlue,
+                            subtitle = "All customers"
                         )
-                        SummaryCard(
+                        StatCard(
                             modifier = Modifier.weight(1f),
                             title = "Active",
                             value = uiState.activeCustomers.toString(),
                             icon = Icons.Default.Person,
-                            onClick = onNavigateToCustomerList
+                            iconTint = SuccessGreen,
+                            subtitle = "Currently active"
                         )
                     }
                 }
@@ -156,33 +129,78 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        SummaryCard(
+                        StatCard(
                             modifier = Modifier.weight(1f),
                             title = "Pending Sync",
                             value = uiState.pendingSyncCount.toString(),
                             icon = Icons.Default.Pending,
-                            iconTint = MaterialTheme.colorScheme.tertiary,
-                            onClick = onNavigateToCustomerList
+                            iconTint = WarningOrange,
+                            subtitle = "Awaiting sync"
                         )
-                        SummaryCard(
+                        StatCard(
                             modifier = Modifier.weight(1f),
-                            title = "Failed Sync",
+                            title = "Failed",
                             value = uiState.failedSyncCount.toString(),
                             icon = Icons.Default.Error,
-                            iconTint = MaterialTheme.colorScheme.error,
-                            onClick = onNavigateToCustomerList
+                            iconTint = ErrorRed,
+                            subtitle = "Sync errors"
                         )
+                    }
+                }
+                
+                // Sync Status Card
+                item {
+                    ISPCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        cardType = CardType.ELEVATED
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Data Synchronization",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = if (uiState.isSyncing) "Syncing data..." 
+                                           else "${uiState.pendingSyncCount} items pending",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            
+                            if (uiState.pendingSyncCount > 0 && !uiState.isSyncing) {
+                                ISPButton(
+                                    text = "Sync Now",
+                                    onClick = { viewModel.syncNow() },
+                                    loading = uiState.isSyncing,
+                                    buttonType = ButtonType.PRIMARY,
+                                    height = 40.dp
+                                )
+                            } else if (uiState.isSyncing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(32.dp),
+                                    color = TechBlue,
+                                    strokeWidth = 3.dp
+                                )
+                            } else {
+                                StatusBadge(
+                                    text = "Up to date",
+                                    color = SuccessGreen
+                                )
+                            }
+                        }
                     }
                 }
                 
                 // Quick Actions Section
                 item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Quick Actions",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
-                    )
+                    SectionHeader(title = "Quick Actions")
                 }
                 
                 item {
@@ -190,17 +208,18 @@ fun DashboardScreen(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        SyncActionCard(
+                        QuickActionCard(
                             modifier = Modifier.weight(1f),
-                            pendingSyncCount = uiState.pendingSyncCount,
-                            isSyncing = uiState.isSyncing,
-                            isRouterConfigured = uiState.isRouterConfigured,
-                            onClick = { viewModel.syncNow() }
+                            title = "Customers",
+                            icon = Icons.Default.Groups,
+                            count = uiState.totalCustomers,
+                            onClick = onNavigateToCustomerList
                         )
                         QuickActionCard(
                             modifier = Modifier.weight(1f),
                             title = "Network Tools",
                             icon = Icons.Default.NetworkCheck,
+                            count = null,
                             onClick = onNavigateToNetworkTools
                         )
                     }
@@ -215,26 +234,29 @@ fun DashboardScreen(
                             modifier = Modifier.weight(1f),
                             title = "Tasks",
                             icon = Icons.Default.Task,
-                            badge = if (uiState.overdueTaskCount > 0) uiState.overdueTaskCount else null,
+                            count = if (uiState.pendingTasks.isNotEmpty()) uiState.pendingTasks.size else null,
                             onClick = onNavigateToTaskList
                         )
                         QuickActionCard(
                             modifier = Modifier.weight(1f),
                             title = "Backup",
                             icon = Icons.Default.Backup,
+                            count = null,
                             onClick = onNavigateToBackup
                         )
                     }
                 }
                 
-                // Recent Activity Section
+                // Recent Customers Section
                 if (uiState.recentCustomers.isNotEmpty()) {
                     item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Recent Customers",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                        SectionHeader(
+                            title = "Recent Customers",
+                            action = {
+                                TextButton(onClick = onNavigateToCustomerList) {
+                                    Text("View All", color = TechBlue)
+                                }
+                            }
                         )
                     }
                     
@@ -246,11 +268,13 @@ fun DashboardScreen(
                 // Pending Tasks Section
                 if (uiState.pendingTasks.isNotEmpty()) {
                     item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Pending Tasks",
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                        SectionHeader(
+                            title = "Pending Tasks",
+                            action = {
+                                TextButton(onClick = onNavigateToTaskList) {
+                                    Text("View All", color = TechBlue)
+                                }
+                            }
                         )
                     }
                     
@@ -258,49 +282,61 @@ fun DashboardScreen(
                         PendingTaskItem(task = task)
                     }
                 }
+                
+                // Router Status Section
+                item {
+                    SectionHeader(title = "System Status")
+                }
+                
+                item {
+                    ISPCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        cardType = if (uiState.isRouterConfigured) CardType.ELEVATED else CardType.OUTLINED,
+                        onClick = onNavigateToRouterSettings
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = if (uiState.isRouterConfigured) Icons.Default.Router else Icons.Default.WifiOff,
+                                    contentDescription = null,
+                                    tint = if (uiState.isRouterConfigured) SuccessGreen else ErrorRed,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column {
+                                    Text(
+                                        text = if (uiState.isRouterConfigured) "Router Connected" else "Router Not Configured",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    uiState.routerName?.let { routerName ->
+                                        Text(
+                                            text = routerName,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            Icon(
+                                imageVector = Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+                
+                // Bottom spacing
+                item {
+                    Spacer(modifier = Modifier.height(80.dp))
+                }
             }
-        }
-    }
-}
-
-@Composable
-private fun SummaryCard(
-    modifier: Modifier = Modifier,
-    title: String,
-    value: String,
-    icon: ImageVector,
-    iconTint: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = modifier.clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = iconTint,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -309,117 +345,72 @@ private fun SummaryCard(
 private fun QuickActionCard(
     modifier: Modifier = Modifier,
     title: String,
-    icon: ImageVector,
-    badge: Int? = null,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    count: Int?,
     onClick: () -> Unit
 ) {
     Card(
         modifier = modifier.clickable(onClick = onClick),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.Start
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            if (badge != null && badge > 0) {
-                Spacer(modifier = Modifier.width(8.dp))
-                BadgeCount(count = badge)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SyncActionCard(
-    modifier: Modifier = Modifier,
-    pendingSyncCount: Int,
-    isSyncing: Boolean,
-    isRouterConfigured: Boolean,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = modifier.clickable(enabled = !isSyncing && isRouterConfigured && pendingSyncCount > 0, onClick = onClick),
-        colors = CardDefaults.cardColors(
-            containerColor = when {
-                isSyncing -> MaterialTheme.colorScheme.secondaryContainer
-                !isRouterConfigured -> MaterialTheme.colorScheme.surfaceVariant
-                else -> MaterialTheme.colorScheme.primaryContainer
-            }
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            if (isSyncing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
-                )
-            } else {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .padding(0.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Icon(
-                    imageVector = Icons.Default.Sync,
-                    contentDescription = "Sync",
-                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = TechBlue,
+                    modifier = Modifier.size(28.dp)
                 )
             }
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = when {
-                    isSyncing -> "Syncing..."
-                    !isRouterConfigured -> "Configure Router"
-                    pendingSyncCount == 0 -> "Sync ($pendingSyncCount)"
-                    else -> "Sync ($pendingSyncCount)"
-                },
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Medium
+                )
+                if (count != null && count > 0) {
+                    Text(
+                        text = "$count items",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
 }
 
-@Composable
-private fun BadgeCount(count: Int) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.error
-        )
-    ) {
-        Text(
-            text = count.toString(),
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onError
-        )
-    }
-}
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RecentCustomerItem(customer: Customer) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
@@ -427,6 +418,23 @@ private fun RecentCustomerItem(customer: Customer) {
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Customer Avatar
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .padding(0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    tint = TechBlue,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = customer.name,
@@ -448,32 +456,26 @@ private fun RecentCustomerItem(customer: Customer) {
 @Composable
 private fun SyncStatusBadge(syncStatus: SyncStatus) {
     val (text, color) = when (syncStatus) {
-        SyncStatus.SYNCED -> "Synced" to MaterialTheme.colorScheme.primary
-        SyncStatus.PENDING -> "Pending" to MaterialTheme.colorScheme.tertiary
-        SyncStatus.FAILED -> "Failed" to MaterialTheme.colorScheme.error
-        SyncStatus.SYNCING -> "Syncing" to MaterialTheme.colorScheme.secondary
-        else -> syncStatus.name to MaterialTheme.colorScheme.outline
+        SyncStatus.SYNCED -> "Synced" to SuccessGreen
+        SyncStatus.PENDING -> "Pending" to WarningOrange
+        SyncStatus.FAILED -> "Failed" to ErrorRed
+        SyncStatus.SYNCING -> "Syncing" to TechBlue
+        else -> syncStatus.name to NeutralGray
     }
     
-    Card(
-        colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f))
-    ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-            style = MaterialTheme.typography.labelSmall,
-            color = color
-        )
-    }
+    StatusBadge(text = text, color = color)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PendingTaskItem(task: Task) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
@@ -497,23 +499,19 @@ private fun PendingTaskItem(task: Task) {
                 }
             }
             
-            TaskPriorityBadge(priority = task.priority)
+            TaskPriorityBadge(priority = task.priority.name)
         }
     }
 }
 
 @Composable
-private fun TaskPriorityBadge(priority: com.rudra.isptechniciantool.domain.model.TaskPriority) {
-    val color = when (priority) {
-        com.rudra.isptechniciantool.domain.model.TaskPriority.URGENT -> MaterialTheme.colorScheme.error
-        com.rudra.isptechniciantool.domain.model.TaskPriority.HIGH -> MaterialTheme.colorScheme.tertiary
-        com.rudra.isptechniciantool.domain.model.TaskPriority.MEDIUM -> MaterialTheme.colorScheme.secondary
-        com.rudra.isptechniciantool.domain.model.TaskPriority.LOW -> MaterialTheme.colorScheme.outline
+private fun TaskPriorityBadge(priority: String) {
+    val color = when (priority.lowercase()) {
+        "high", "urgent" -> ErrorRed
+        "medium" -> WarningOrange
+        "low" -> SuccessGreen
+        else -> NeutralGray
     }
     
-    Text(
-        text = priority.name,
-        style = MaterialTheme.typography.labelSmall,
-        color = color
-    )
+    StatusBadge(text = priority, color = color)
 }

@@ -48,6 +48,9 @@ fun NavGraph(navController: NavHostController) {
                 },
                 onNavigateToBackup = {
                     navController.navigate(Screen.Backup.route)
+                },
+                onNavigateToSecrets = {
+                    navController.navigate(Screen.Secrets.route)
                 }
             )
         }
@@ -71,7 +74,8 @@ fun NavGraph(navController: NavHostController) {
             val customerId = backStackEntry.arguments?.getLong("customerId") ?: 0L
             CustomerDetailScreen(
                 customerId = customerId,
-                onNavigateBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEdit = { id -> navController.navigate(Screen.EditCustomer.createRoute(id)) }
             )
         }
         

@@ -1,47 +1,13 @@
 package com.rudra.isptechniciantool.ui.screens.router
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.LockOpen
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.SearchOff
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -49,9 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rudra.isptechniciantool.data.network.PppSecret
-import com.rudra.isptechniciantool.di.RepositoryModule
+import com.rudra.isptechniciantool.ui.components.*
+import com.rudra.isptechniciantool.ui.theme.*
 
 /**
  * Screen to display and manage PPP secrets from MikroTik router
@@ -64,6 +30,7 @@ fun SecretsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(uiState.message) {
         uiState.message?.let {
@@ -75,7 +42,7 @@ fun SecretsScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("PPP Secrets") },
+                title = { Text("PPP Secrets", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -90,211 +57,96 @@ fun SecretsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                    containerColor = TechBlue,
+                    titleContentColor = NeutralWhite,
+                    navigationIconContentColor = NeutralWhite,
+                    actionIconContentColor = NeutralWhite
                 )
             )
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = { viewModel.loadSecrets() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Status Card
-            StatusCard(
-                totalSecrets = uiState.secrets.size,
-                enabledCount = uiState.secrets.count { !it.disabled },
-                disabledCount = uiState.secrets.count { it.disabled },
-                isLoading = uiState.isLoading
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Content
-            when {
-                uiState.isLoading -> {
-                    LoadingContent()
-                }
-                uiState.error != null -> {
-                    ErrorContent(
-                        error = uiState.error!!,
-                        onRetry = { viewModel.loadSecrets() }
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Stats Cards
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Total",
+                        value = uiState.secrets.size.toString(),
+                        icon = Icons.Default.Lock,
+                        iconTint = TechBlue
+                    )
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Enabled",
+                        value = uiState.secrets.count { !it.disabled }.toString(),
+                        icon = Icons.Default.LockOpen,
+                        iconTint = SuccessGreen
+                    )
+                    StatCard(
+                        modifier = Modifier.weight(1f),
+                        title = "Disabled",
+                        value = uiState.secrets.count { it.disabled }.toString(),
+                        icon = Icons.Default.Lock,
+                        iconTint = ErrorRed
                     )
                 }
-                uiState.secrets.isEmpty() -> {
-                    EmptyContent()
-                }
-                else -> {
-                    SecretsList(
-                        secrets = uiState.secrets,
-                        isProcessing = uiState.isProcessing,
-                        onEnable = { viewModel.enableSecret(it) },
-                        onDisable = { viewModel.disableSecret(it) },
-                        onDelete = { viewModel.deleteSecret(it) }
-                    )
+
+                // Content
+                when {
+                    uiState.isLoading && uiState.secrets.isEmpty() -> {
+                        LoadingIndicator(
+                            modifier = Modifier.fillMaxSize(),
+                            message = "Loading secrets from router..."
+                        )
+                    }
+                    uiState.error != null && uiState.secrets.isEmpty() -> {
+                        EmptyState(
+                            icon = Icons.Default.Error,
+                            title = "Failed to load secrets",
+                            message = uiState.error ?: "Unknown error occurred",
+                            actionText = "Retry",
+                            onAction = { viewModel.loadSecrets() },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    uiState.secrets.isEmpty() -> {
+                        EmptyState(
+                            icon = Icons.Default.SearchOff,
+                            title = "No PPP secrets found",
+                            message = "The router may not have any PPP secrets configured",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    else -> {
+                        SecretsList(
+                            secrets = uiState.secrets,
+                            isProcessing = uiState.isProcessing,
+                            onEnable = { viewModel.enableSecret(it) },
+                            onDisable = { viewModel.disableSecret(it) },
+                            onDelete = { viewModel.deleteSecret(it) }
+                        )
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun StatusCard(
-    totalSecrets: Int,
-    enabledCount: Int,
-    disabledCount: Int,
-    isLoading: Boolean
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            StatItem(
-                label = "Total",
-                value = totalSecrets.toString(),
-                isLoading = isLoading
-            )
-            StatItem(
-                label = "Enabled",
-                value = enabledCount.toString(),
-                color = MaterialTheme.colorScheme.primary,
-                isLoading = isLoading
-            )
-            StatItem(
-                label = "Disabled",
-                value = disabledCount.toString(),
-                color = MaterialTheme.colorScheme.error,
-                isLoading = isLoading
-            )
-        }
-    }
-}
-
-@Composable
-private fun StatItem(
-    label: String,
-    value: String,
-    color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurfaceVariant,
-    isLoading: Boolean
-) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(20.dp),
-                strokeWidth = 2.dp
-            )
-        } else {
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = color
-            )
-        }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
-}
-
-@Composable
-private fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator()
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("Loading secrets from router...")
-        }
-    }
-}
-
-@Composable
-private fun ErrorContent(
-    error: String,
-    onRetry: () -> Unit
-) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Error,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.error
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "Failed to load secrets",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = error,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            androidx.compose.material3.TextButton(onClick = onRetry) {
-                Text("Retry")
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.SearchOff,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = "No PPP secrets found",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "The router may not have any PPP secrets configured",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SecretsList(
     secrets: List<PppSecret>,
@@ -317,7 +169,7 @@ private fun SecretsList(
             items = secrets,
             key = { it.id }
         ) { secret ->
-            SwipeToDeleteSecretItem(
+            SecretItem(
                 secret = secret,
                 isProcessing = isProcessing && !secret.disabled,
                 onEnable = { onEnable(secret) },
@@ -334,84 +186,46 @@ private fun SecretsList(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeToDeleteSecretItem(
+private fun SecretItem(
     secret: PppSecret,
     isProcessing: Boolean,
     onEnable: () -> Unit,
     onDisable: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val dismissState = rememberSwipeToDismissBoxState(
-        confirmValueChange = { value ->
-            if (value == SwipeToDismissBoxValue.EndToStart) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    
+    if (showDeleteDialog) {
+        ISPDialog(
+            title = "Delete Secret",
+            message = "Are you sure you want to delete secret \"${secret.name}\"?",
+            onConfirm = {
                 onDelete()
-                false // Don't dismiss, let the state reset
-            } else {
-                false
-            }
-        }
-    )
-
-    SwipeToDismissBox(
-        state = dismissState,
-        backgroundContent = {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Delete,
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        enableDismissFromStartToEnd = false,
-        enableDismissFromEndToStart = true
-    ) {
-        SecretItem(
-            secret = secret,
-            isProcessing = isProcessing,
-            onEnable = onEnable,
-            onDisable = onDisable
+                showDeleteDialog = false
+            },
+            onDismiss = { showDeleteDialog = false },
+            confirmText = "Delete",
+            dismissText = "Cancel",
+            isDestructive = true,
+            icon = Icons.Default.Delete
         )
     }
-}
-
-@Composable
-private fun SecretItem(
-    secret: PppSecret,
-    isProcessing: Boolean,
-    onEnable: () -> Unit,
-    onDisable: () -> Unit
-) {
-    Card(
+    
+    ISPCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (secret.disabled) {
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        )
+        cardType = if (secret.disabled) CardType.OUTLINED else CardType.ELEVATED,
+        onClick = { /* Navigate to detail */ }
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Status Icon
             Icon(
                 imageVector = if (secret.disabled) Icons.Default.Lock else Icons.Default.LockOpen,
                 contentDescription = null,
-                tint = if (secret.disabled) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
+                tint = if (secret.disabled) ErrorRed else SuccessGreen,
+                modifier = Modifier.size(24.dp)
             )
             
             Spacer(modifier = Modifier.width(12.dp))
@@ -441,7 +255,8 @@ private fun SecretItem(
                     Text(
                         text = secret.profile,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = TechBlue,
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 
@@ -461,19 +276,33 @@ private fun SecretItem(
             if (isProcessing) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
+                    color = TechBlue
                 )
             } else {
                 if (secret.disabled) {
-                    androidx.compose.material3.TextButton(onClick = onEnable) {
-                        Text("Enable")
-                    }
+                    ISPButton(
+                        text = "Enable",
+                        onClick = onEnable,
+                        buttonType = ButtonType.SUCCESS,
+                        height = 32.dp
+                    )
                 } else {
-                    androidx.compose.material3.TextButton(
-                        onClick = onDisable,
-                        enabled = !isProcessing
-                    ) {
-                        Text("Disable")
+                    Row {
+                        ISPButton(
+                            text = "Disable",
+                            onClick = onDisable,
+                            buttonType = ButtonType.OUTLINE,
+                            height = 32.dp
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete",
+                                tint = ErrorRed
+                            )
+                        }
                     }
                 }
             }

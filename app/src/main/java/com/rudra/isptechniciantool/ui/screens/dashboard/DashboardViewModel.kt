@@ -78,6 +78,7 @@ class DashboardViewModel @Inject constructor(
                     overdueTaskCount = overdueTasks.size,
                     isLoading = false,
                     isRouterConfigured = router != null,
+                    routerName = router?.name,
                     isSyncing = false,
                     lastSyncTime = lastSyncTime
                 )
@@ -144,6 +145,7 @@ data class DashboardUiState(
     val isLoading: Boolean = true,
     val error: String? = null,
     val isRouterConfigured: Boolean = false,
+    val routerName: String? = null,
     val isSyncing: Boolean = false,
     val syncMessage: String? = null,
     val lastSyncTime: LocalDateTime? = null
