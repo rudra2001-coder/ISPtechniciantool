@@ -95,6 +95,10 @@ dependencies {
     // Security
     implementation(libs.androidx.security.crypto)
 
+    // Map
+    implementation("org.osmdroid:osmdroid-android:6.1.16")
+
+
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockk)

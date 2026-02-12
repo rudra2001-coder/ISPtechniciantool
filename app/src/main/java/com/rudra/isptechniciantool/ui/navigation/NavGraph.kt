@@ -140,7 +140,8 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.TaskList.route) {
             TaskListScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToAddTask = { navController.navigate(Screen.AddTask.route) }
+                onNavigateToAddTask = { navController.navigate(Screen.AddTask.route) },
+                onTaskClick = { taskId -> navController.navigate("task_detail/$taskId") }
             )
         }
         
