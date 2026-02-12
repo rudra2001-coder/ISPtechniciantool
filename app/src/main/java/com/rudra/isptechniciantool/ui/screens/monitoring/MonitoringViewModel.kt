@@ -7,6 +7,7 @@ import com.rudra.isptechniciantool.domain.model.DeviceStatus
 import com.rudra.isptechniciantool.domain.repository.DeviceRepository
 import com.rudra.isptechniciantool.domain.repository.LinkRepository
 import com.rudra.isptechniciantool.util.PingUtil
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,12 +15,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel for the Monitoring screen.
  * Manages device monitoring state and periodic connectivity checks.
  */
-class MonitoringViewModel(
+@HiltViewModel
+class MonitoringViewModel @Inject constructor(
     private val deviceRepository: DeviceRepository,
     private val linkRepository: LinkRepository
 ) : ViewModel() {
