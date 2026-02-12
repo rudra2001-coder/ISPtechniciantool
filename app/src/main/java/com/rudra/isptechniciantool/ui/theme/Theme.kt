@@ -128,20 +128,3 @@ fun ISPTechnicianToolTheme(
         content = content
     )
 }
-
-// Button Types for ISPButton
-enum class ButtonType {
-    PRIMARY,
-    SECONDARY,
-    SUCCESS,
-    ERROR,
-    OUTLINE
-}
-
-// Card Types for ISPCard
-enum class CardType {
-    DEFAULT,
-    ELEVATED,
-    OUTLINED,
-    CLICKABLE
-}

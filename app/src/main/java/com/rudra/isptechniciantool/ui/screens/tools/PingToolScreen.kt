@@ -18,6 +18,8 @@ import java.net.InetAddress
 import java.net.InetSocketAddress
 import java.net.Socket
 import com.rudra.isptechniciantool.ui.components.*
+import com.rudra.isptechniciantool.ui.components.CardType
+import com.rudra.isptechniciantool.ui.components.ButtonType
 import com.rudra.isptechniciantool.ui.theme.*
 
 /**

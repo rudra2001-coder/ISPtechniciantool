@@ -18,9 +18,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rudra.isptechniciantool.domain.model.Customer
 import com.rudra.isptechniciantool.domain.model.SyncStatus
 import com.rudra.isptechniciantool.domain.model.Task
-import com.rudra.isptechniciantool.domain.model.TaskPriority
 import com.rudra.isptechniciantool.ui.components.*
-import com.rudra.isptechniciantool.ui.screens.dashboard.TaskPriorityBadge
+import com.rudra.isptechniciantool.ui.components.CardType
+import com.rudra.isptechniciantool.ui.components.ButtonType
 import com.rudra.isptechniciantool.ui.theme.*
 
 /**
@@ -36,6 +36,10 @@ fun DashboardScreen(
     onNavigateToTaskList: () -> Unit,
     onNavigateToBackup: () -> Unit,
     onNavigateToSecrets: () -> Unit,
+    onNavigateToTopology: () -> Unit,
+    onNavigateToMap: () -> Unit,
+    onNavigateToMonitoring: () -> Unit,
+    onNavigateToExport: () -> Unit,
     viewModel: DashboardViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -217,10 +221,10 @@ fun DashboardScreen(
                         )
                         QuickActionCard(
                             modifier = Modifier.weight(1f),
-                            title = "Network Tools",
-                            icon = Icons.Default.NetworkCheck,
+                            title = "Topology",
+                            icon = Icons.Default.DeviceHub,
                             count = null,
-                            onClick = onNavigateToNetworkTools
+                            onClick = onNavigateToTopology
                         )
                     }
                 }
@@ -232,17 +236,61 @@ fun DashboardScreen(
                     ) {
                         QuickActionCard(
                             modifier = Modifier.weight(1f),
+                            title = "Network Tools",
+                            icon = Icons.Default.NetworkCheck,
+                            count = null,
+                            onClick = onNavigateToNetworkTools
+                        )
+                        QuickActionCard(
+                            modifier = Modifier.weight(1f),
                             title = "Tasks",
                             icon = Icons.Default.Task,
                             count = if (uiState.pendingTasks.isNotEmpty()) uiState.pendingTasks.size else null,
                             onClick = onNavigateToTaskList
                         )
+                    }
+                }
+                
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         QuickActionCard(
                             modifier = Modifier.weight(1f),
-                            title = "Backup",
-                            icon = Icons.Default.Backup,
+                            title = "Map",
+                            icon = Icons.Default.Map,
                             count = null,
-                            onClick = onNavigateToBackup
+                            onClick = onNavigateToMap
+                        )
+                        QuickActionCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Export/Backup",
+                            icon = Icons.Default.Upload,
+                            count = null,
+                            onClick = onNavigateToExport
+                        )
+                    }
+                }
+                
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        QuickActionCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Monitoring",
+                            icon = Icons.Default.Monitor,
+                            count = null,
+                            onClick = onNavigateToMonitoring
+                        )
+                        QuickActionCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Settings",
+                            icon = Icons.Default.Settings,
+                            count = null,
+                            onClick = onNavigateToRouterSettings
                         )
                     }
                 }
@@ -499,19 +547,7 @@ private fun PendingTaskItem(task: Task) {
                 }
             }
             
-            TaskPriorityBadge(priority = task.priority.name)
+            TaskPriorityBadge(priority = task.priority)
         }
     }
-}
-
-@Composable
-private fun TaskPriorityBadge(priority: String) {
-    val color = when (priority.lowercase()) {
-        "high", "urgent" -> ErrorRed
-        "medium" -> WarningOrange
-        "low" -> SuccessGreen
-        else -> NeutralGray
-    }
-    
-    StatusBadge(text = priority, color = color)
 }

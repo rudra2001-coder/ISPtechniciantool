@@ -96,7 +96,10 @@ dependencies {
     implementation(libs.androidx.security.crypto)
 
     // Map
-    implementation("org.osmdroid:osmdroid-android:6.1.16")
+    implementation(libs.osmdroid.android)
+
+    // Gson for JSON
+    implementation(libs.gson)
 
 
     // Testing

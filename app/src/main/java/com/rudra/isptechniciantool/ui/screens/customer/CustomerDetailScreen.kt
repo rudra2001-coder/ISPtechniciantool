@@ -25,6 +25,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.rudra.isptechniciantool.domain.model.Customer
 import com.rudra.isptechniciantool.domain.model.SyncStatus
 import com.rudra.isptechniciantool.ui.components.*
+import com.rudra.isptechniciantool.ui.components.CardType
+import com.rudra.isptechniciantool.ui.components.ButtonType
 import com.rudra.isptechniciantool.ui.theme.*
 
 /**

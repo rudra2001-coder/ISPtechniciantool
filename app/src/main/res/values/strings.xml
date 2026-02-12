@@ -1,3 +1,76 @@
 <resources>
     <string name="app_name">ISP Technician Tool</string>
+
+    <!-- Export/Import -->
+    <string name="export_backup">Export And Backup</string>
+    <string name="data_summary">Data Summary</string>
+    <string name="devices">Devices</string>
+    <string name="links">Links</string>
+    <string name="data_export">Data Export</string>
+    <string name="export_to_json">Export to JSON</string>
+    <string name="export_to_json_description">Export devices and links to a JSON backup file</string>
+    <string name="export_data">Export Data</string>
+    <string name="data_import">Data Import</string>
+    <string name="import_from_json">Import from JSON</string>
+    <string name="import_from_json_description">Import devices and links from a backup file</string>
+    <string name="import_data">Import Data</string>
+    <string name="image_export">Image Export</string>
+    <string name="export_topology_image">Export Topology Image</string>
+    <string name="export_topology_image_description">Save topology diagram as PNG image</string>
+    <string name="export_image">Export Image</string>
+    <string name="offline_tiles">Offline Tiles</string>
+    <string name="download_offline_tiles">Download Offline Tiles</string>
+    <string name="download_offline_tiles_description">Download map tiles for offline use</string>
+    <string name="cache_size">Cache Size</string>
+    <string name="download">Download</string>
+    <string name="clear">Clear</string>
+    <string name="share">Share</string>
+
+    <!-- Export Dialog -->
+    <string name="export_options">Export Options</string>
+    <string name="file_name">File Name</string>
+    <string name="description_optional">Description (optional)</string>
+    <string name="include_devices">Include Devices</string>
+    <string name="include_links">Include Links</string>
+    <string name="include_notes">Include Notes</string>
+    <string name="export_summary">Export Summary</string>
+    <string name="will_export_devices_links">Will export: Devices %1$s | Links %2$s</string>
+
+    <!-- Import Dialog -->
+    <string name="import_options">Import Options</string>
+    <string name="import_preview">Import Preview</string>
+    <string name="devices_to_import">Devices to Import</string>
+    <string name="links_to_import">Links to Import</string>
+    <string name="validation_errors">Validation Errors</string>
+    <string name="more_errors">+%1$d more errors</string>
+    <string name="conflict_resolution">Conflict Resolution</string>
+    <string name="skip">Skip</string>
+    <string name="overwrite">Overwrite</string>
+    <string name="merge">Merge</string>
+    <string name="validate_data">Validate Data</string>
+    <string name="preserve_ids">Preserve IDs</string>
+    <string name="resolution_description">Resolution Description</string>
+    <string name="skip_description">Skip duplicate items if they already exist</string>
+    <string name="overwrite_description">Replace existing items with imported data</string>
+    <string name="merge_description">Merge fields (keep new non-null values)</string>
+
+    <!-- Tile Download Dialog -->
+    <string name="tile_download_info">Tiles will be downloaded for the current map view area. This may use significant storage space.</string>
+    <string name="min_zoom">Min Zoom</string>
+    <string name="max_zoom">Max Zoom</string>
+    <string name="range_10_17">Range: 1-19</string>
+    <string name="use_current_map_view">Use Current Map View</string>
+    <string name="storage_estimation">Storage Estimation</string>
+    <string name="estimated_tiles">Estimated Tiles</string>
+    <string name="estimated_size">Estimated Size</string>
+    <string name="large_download_warning">Warning: This download may contain many tiles and take significant time. Consider reducing the zoom range.</string>
+
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="export">Export</string>
+    <string name="import_">Import</string>
+    <string name="success">Success</string>
+    <string name="error">Error</string>
+    <string name="loading">Loading…</string>
+    <string name="processing">Processing…</string>
 </resources>

@@ -1,16 +1,19 @@
 package com.rudra.isptechniciantool.ui.navigation
 
+import android.R.attr.type
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.navArgument
 import com.rudra.isptechniciantool.ui.screens.backup.BackupScreen
 import com.rudra.isptechniciantool.ui.screens.customer.AddCustomerScreen
 import com.rudra.isptechniciantool.ui.screens.customer.CustomerDetailScreen
 import com.rudra.isptechniciantool.ui.screens.customer.CustomerListScreen
 import com.rudra.isptechniciantool.ui.screens.dashboard.DashboardScreen
+import com.rudra.isptechniciantool.ui.screens.export.ExportScreen
 import com.rudra.isptechniciantool.ui.screens.router.RouterSettingsScreen
 import com.rudra.isptechniciantool.ui.screens.router.SecretsScreen
 import com.rudra.isptechniciantool.ui.screens.tasks.AddTaskScreen
@@ -19,6 +22,10 @@ import com.rudra.isptechniciantool.ui.screens.tools.IpCalculatorScreen
 import com.rudra.isptechniciantool.ui.screens.tools.NetworkToolsScreen
 import com.rudra.isptechniciantool.ui.screens.tools.PingToolScreen
 import com.rudra.isptechniciantool.ui.screens.tools.PortScannerScreen
+import com.rudra.isptechniciantool.ui.screens.topology.TopologyScreen
+import com.rudra.isptechniciantool.ui.screens.map.MapScreen
+import com.rudra.isptechniciantool.ui.screens.monitoring.MonitoringScreen
+import com.rudra.isptechniciantool.ui.screens.monitoring.MonitoringViewModel
 
 /**
  * Navigation graph for the application.
@@ -51,6 +58,18 @@ fun NavGraph(navController: NavHostController) {
                 },
                 onNavigateToSecrets = {
                     navController.navigate(Screen.Secrets.route)
+                },
+                onNavigateToTopology = {
+                    navController.navigate(Screen.Topology.route)
+                },
+                onNavigateToMap = {
+                    navController.navigate(Screen.Map.route)
+                },
+                onNavigateToMonitoring = {
+                    navController.navigate(Screen.Monitoring.route)
+                },
+                onNavigateToExport = {
+                    navController.navigate(Screen.Export.route)
                 }
             )
         }
@@ -154,6 +173,94 @@ fun NavGraph(navController: NavHostController) {
         composable(Screen.Backup.route) {
             BackupScreen(
                 onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        
+        // Topology Screen
+        composable(Screen.Topology.route) {
+            TopologyScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable(Screen.Map.route) {
+            MapScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToEditDevice = { deviceId ->
+                    navController.navigate(Screen.DeviceEdit.createRoute(deviceId))
+                },
+                onNavigateToTopology = {
+                    navController.navigate(Screen.Topology.route)
+                }
+            )
+        }
+        
+        composable(Screen.DeviceList.route) {
+            // DeviceListScreen would go here
+            // Placeholder - will be implemented in later phases
+        }
+        
+        composable(
+            route = Screen.DeviceDetail.route,
+            arguments = listOf(navArgument("deviceId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val deviceId = backStackEntry.arguments?.getLong("deviceId") ?: 0L
+            // DeviceDetailScreen would go here
+            // Placeholder - will be implemented in later phases
+        }
+        
+        composable(
+            route = Screen.DeviceEdit.route,
+            arguments = listOf(navArgument("deviceId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val deviceId = backStackEntry.arguments?.getLong("deviceId") ?: 0L
+            // DeviceEditScreen would go here
+            // Placeholder - will be implemented in later phases
+        }
+        
+        composable(Screen.AddDevice.route) {
+            // AddDeviceScreen would go here
+            // Placeholder - will be implemented in later phases
+        }
+        
+        composable(
+            route = Screen.LinkEdit.route,
+            arguments = listOf(navArgument("linkId") { type = NavType.LongType })
+        ) { backStackEntry ->
+            val linkId = backStackEntry.arguments?.getLong("linkId") ?: 0L
+            // LinkEditScreen would go here
+            // Placeholder - will be implemented in later phases
+        }
+        
+        composable(Screen.AddLink.route) {
+            // AddLinkScreen would go here
+            // Placeholder - will be implemented in later phases
+        }
+        
+        // Monitoring Screen
+        composable(Screen.Monitoring.route) {
+            val viewModel: MonitoringViewModel = hiltViewModel()
+            MonitoringScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDeviceEdit = { deviceId ->
+                    navController.navigate(Screen.DeviceEdit.createRoute(deviceId))
+                },
+                viewModel = viewModel
+            )
+        }
+
+        // Export Screen
+        composable(Screen.Export.route) {
+            ExportScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onExportTopologyImage = { callback ->
+                    // This will be handled by the TopologyScreen
+                    // when navigated from there
+                },
+                onDownloadTiles = { callback ->
+                    // This will be handled by the MapScreen
+                    // when navigated from there
+                }
             )
         }
     }

@@ -3,6 +3,8 @@ package com.rudra.isptechniciantool.di
 import android.content.Context
 import androidx.room.Room
 import com.rudra.isptechniciantool.data.local.dao.CustomerDao
+import com.rudra.isptechniciantool.data.local.dao.DeviceDao
+import com.rudra.isptechniciantool.data.local.dao.LinkDao
 import com.rudra.isptechniciantool.data.local.dao.RouterDao
 import com.rudra.isptechniciantool.data.local.dao.SyncLogDao
 import com.rudra.isptechniciantool.data.local.dao.TaskDao
@@ -62,5 +64,17 @@ object DatabaseModule {
     @Singleton
     fun provideWorkLogDao(database: ISPDatabase): WorkLogDao {
         return database.workLogDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDeviceDao(database: ISPDatabase): DeviceDao {
+        return database.deviceDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLinkDao(database: ISPDatabase): LinkDao {
+        return database.linkDao()
     }
 }

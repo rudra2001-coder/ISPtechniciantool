@@ -15,10 +15,12 @@ navigationCompose = "2.8.1"
 coroutines = "1.8.1"
 serialization = "1.6.3"
 datastore = "1.1.1"
-security = "1.1.0-alpha06"
+security = "1.1.0"
 mockk = "1.13.10"
 truth = "1.4.2"
 ksp = "2.0.21-1.0.27"
+osmdroid = "6.1.18"
+gson = "2.10.1"
 [libraries]
 # AndroidX Core
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -72,6 +74,12 @@ androidx-security-crypto = { group = "androidx.security", name = "security-crypt
 # Testing
 mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+
+# OSMDroid for Maps
+osmdroid-android = { group = "org.osmdroid", name = "osmdroid-android", version.ref = "osmdroid" }
+
+# Gson for JSON
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

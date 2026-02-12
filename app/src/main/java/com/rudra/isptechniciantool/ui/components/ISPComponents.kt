@@ -23,6 +23,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rudra.isptechniciantool.ui.theme.*
 
+
+// ==================== Enums ====================
+enum class CardType {
+    DEFAULT,
+    ELEVATED,
+    OUTLINED,
+    CLICKABLE
+}
+
+enum class ButtonType {
+    PRIMARY,
+    SECONDARY,
+    SUCCESS,
+    ERROR,
+    OUTLINE
+}
+
 // ==================== ISPButton ====================
 @Composable
 fun ISPButton(
@@ -568,6 +585,34 @@ fun StatusBadge(
             style = MaterialTheme.typography.labelSmall,
             color = color,
             fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+// ==================== TaskPriorityBadge ====================
+@Composable
+fun TaskPriorityBadge(
+    priority: com.rudra.isptechniciantool.domain.model.TaskPriority,
+    modifier: Modifier = Modifier
+) {
+    val (backgroundColor, textColor, text) = when (priority) {
+        com.rudra.isptechniciantool.domain.model.TaskPriority.HIGH -> Triple(ErrorRed.copy(alpha = 0.1f), ErrorRed, "HIGH")
+        com.rudra.isptechniciantool.domain.model.TaskPriority.MEDIUM -> Triple(WarningOrange.copy(alpha = 0.1f), WarningOrange, "MEDIUM")
+        com.rudra.isptechniciantool.domain.model.TaskPriority.LOW -> Triple(SuccessGreen.copy(alpha = 0.1f), SuccessGreen, "LOW")
+        com.rudra.isptechniciantool.domain.model.TaskPriority.URGENT -> Triple(ErrorRed.copy(alpha = 0.2f), ErrorRed, "URGENT")
+    }
+    
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.small)
+            .background(backgroundColor)
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = textColor,
+            fontWeight = FontWeight.Bold
         )
     }
 }

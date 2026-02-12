@@ -47,3 +47,9 @@ val GradientEnd = Color(0xFF64B5F6)
 // Card Colors
 val CardBackground = Color(0xFFFFFFFF)
 val CardBackgroundDark = Color(0xFF2D2D2D)
+
+// Additional Colors
+val Purple500 = Color(0xFF9C27B0)
+val Purple = Color(0xFF9C27B0)
+val Cyan = Color(0xFF00BCD4)
+val DarkGray = Color(0xFF616161)

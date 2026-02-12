@@ -1,11 +1,15 @@
 package com.rudra.isptechniciantool.di
 
 import com.rudra.isptechniciantool.data.repository.CustomerRepositoryImpl
+import com.rudra.isptechniciantool.data.repository.DeviceRepositoryImpl
+import com.rudra.isptechniciantool.data.repository.LinkRepositoryImpl
 import com.rudra.isptechniciantool.data.repository.RouterRepositoryImpl
 import com.rudra.isptechniciantool.data.repository.SyncLogRepositoryImpl
 import com.rudra.isptechniciantool.data.repository.TaskRepositoryImpl
 import com.rudra.isptechniciantool.data.repository.WorkLogRepositoryImpl
 import com.rudra.isptechniciantool.domain.repository.CustomerRepository
+import com.rudra.isptechniciantool.domain.repository.DeviceRepository
+import com.rudra.isptechniciantool.domain.repository.LinkRepository
 import com.rudra.isptechniciantool.domain.repository.RouterRepository
 import com.rudra.isptechniciantool.domain.repository.SyncLogRepository
 import com.rudra.isptechniciantool.domain.repository.TaskRepository
@@ -52,4 +56,16 @@ abstract class RepositoryModule {
     abstract fun bindWorkLogRepository(
         workLogRepositoryImpl: WorkLogRepositoryImpl
     ): WorkLogRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindDeviceRepository(
+        deviceRepositoryImpl: DeviceRepositoryImpl
+    ): DeviceRepository
+    
+    @Binds
+    @Singleton
+    abstract fun bindLinkRepository(
+        linkRepositoryImpl: LinkRepositoryImpl
+    ): LinkRepository
 }

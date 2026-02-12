@@ -22,4 +22,26 @@ sealed class Screen(val route: String) {
     object TaskList : Screen("task_list")
     object AddTask : Screen("add_task")
     object Backup : Screen("backup")
+    
+    // Topology and Map screens
+    object Topology : Screen("topology")
+    object Map : Screen("map")
+    object DeviceList : Screen("device_list")
+    object DeviceDetail : Screen("device_detail/{deviceId}") {
+        fun createRoute(deviceId: Long) = "device_detail/$deviceId"
+    }
+    object DeviceEdit : Screen("device_edit/{deviceId}") {
+        fun createRoute(deviceId: Long) = "device_edit/$deviceId"
+    }
+    object AddDevice : Screen("add_device")
+    object LinkEdit : Screen("link_edit/{linkId}") {
+        fun createRoute(linkId: Long) = "link_edit/$linkId"
+    }
+    object AddLink : Screen("add_link")
+    
+    // Monitoring
+    object Monitoring : Screen("monitoring")
+
+    // Export
+    object Export : Screen("export")
 }
